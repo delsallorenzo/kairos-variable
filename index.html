@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio-Reactive Font</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="drop-area">
+        Trascina qui il tuo font variabile (WOFF2 o TTF)
+    </div>
+    <div id="container">
+        <div id="centeredText" contenteditable="true">Ciao</div>
+    </div>
+    <div id="controls">
+        <label for="fontSize">Dimensione testo:</label>
+        <input type="range" id="fontSize" min="10" max="100" value="48">
+        <span id="fontSizeValue">48px</span>
+    </div>
+    <button id="startButton">Avvia Microfono</button>
+    <script src="script.js"></script>
+</body>
+</html>
