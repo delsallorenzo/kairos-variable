@@ -87,8 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.02; // Rilascio molto lento quando il volume diminuisce
+        const attackSpeed = 0.8;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.2; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < dataArray.length; i++) {
             if (dataArray[i] > smoothedData[i]) {
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
 
-            const transitionSpeed = 0.08; // Velocità della transizione tra pesi
+            const transitionSpeed = 0.8; // Velocità della transizione tra pesi
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
 
             return `<span style="
