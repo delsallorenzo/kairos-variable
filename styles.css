@@ -38,6 +38,6 @@ body, html {
 /* Testo centrale */
 #centeredText {
     font-family: 'ABCMaristVariable', Arial, sans-serif; /* Usa il font di default */
-    font-size: 48px; /* Dimensione iniziale */
+    font-size: 250px; /* Dimensione iniziale */
     text-align: center;
 }
