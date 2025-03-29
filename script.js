@@ -75,8 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.06;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.01; // Rilascio molto lento quando il volume diminuisce
+        const attackSpeed = 0.04;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.02; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < dataArray.length; i++) {
             // Easing differenziato con rilascio extra-lento
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             // Transizione molto lenta tra i valori
-            const transitionSpeed = 0.10; // Velocità di transizione estremamente bassa
+            const transitionSpeed = 0.12; // Velocità di transizione estremamente bassa
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
             
             // Arrotonda per evitare valori con troppe cifre decimali
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
-                transition: font-variation-settings 100ms linear;
+                transition: font-variation-settings 75ms linear;
                 display: inline-block;">${char}</span>`;
         }).join("");
     }
