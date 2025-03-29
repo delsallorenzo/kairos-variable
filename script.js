@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const startButton = document.getElementById("startButton");
 
     let audioContext, analyser, dataArray, variableFont = "Arial"; // Default font
-    let previousData;
     let smoothedData;
 
     // Drag-and-Drop Font Upload
@@ -60,8 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
             analyser.fftSize = 2048; // Maggiore risoluzione delle frequenze
             const bufferLength = analyser.frequencyBinCount; // Numero di "bin" delle frequenze
             dataArray = new Uint8Array(bufferLength);
-            previousData = new Uint8Array(bufferLength);
-            smoothedData = new Uint8Array(bufferLength);
+            smoothedData = new Float32Array(bufferLength).fill(100); // Inizializza i dati smooth
 
             source.connect(analyser);
             animateText();
@@ -76,13 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         analyser.getByteFrequencyData(dataArray);
 
-        // Amplificazione del volume e applicazione di una soglia minima
-        const amplifiedData = dataArray.map(value => Math.max(value * 1.5, 20));
-
-        // Smoothing: media mobile tra il valore attuale e quello precedente
-        for (let i = 0; i < amplifiedData.length; i++) {
-            smoothedData[i] =
-                smoothedData[i] * 0.9 + amplifiedData[i] * 0.1; // Interpolazione lenta (release)
+        // Smoothing avanzato con release lenta
+        for (let i = 0; i < dataArray.length; i++) {
+            smoothedData[i] += (dataArray[i] - smoothedData[i]) * 0.1; // Interpolazione lenta
         }
 
         updateFontWeights(smoothedData);
