@@ -1,29 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Elementi DOM
+    // DOM Elements
     const dropZone = document.getElementById('drop-zone');
     const fontFileInput = document.getElementById('font-file');
-    const uploadBtn = document.getElementById('upload-btn');
     const currentFontDisplay = document.getElementById('current-font');
-    const textInput = document.getElementById('text-input');
-    const fontSizeInput = document.getElementById('font-size');
-    const fontSizeValue = document.getElementById('font-size-value');
-    const textDisplay = document.getElementById('text-display');
+    const editableText = document.getElementById('editable-text');
     const startAudioBtn = document.getElementById('start-audio');
     const stopAudioBtn = document.getElementById('stop-audio');
     const audioVisualizer = document.getElementById('audio-visualizer');
     
-    // Variabili audio
+    // Audio variables
     let audioContext;
     let analyser;
     let microphone;
     let isAudioRunning = false;
     let animationId;
     
-    // Configurazione iniziale
+    // Font configuration
     let currentFontName = 'ABCMaristVariable';
     let currentFontPath = 'ABCMaristVariable-Trial.ttf';
     
-    // Funzioni di utility per il drag and drop
+    // Initialize the text with individual letter spans
+    prepareText();
+    
+    // Set up event listeners for the font drop zone
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
     });
@@ -34,37 +33,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, highlight, false);
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('highlight');
+        }, false);
     });
     
     ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, unhighlight, false);
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('highlight');
+        }, false);
     });
     
-    function highlight() {
-        dropZone.classList.add('highlight');
-    }
-    
-    function unhighlight() {
-        dropZone.classList.remove('highlight');
-    }
-    
-    // Gestione del caricamento del font
+    // Handle font file drop
     dropZone.addEventListener('drop', handleDrop, false);
+    dropZone.addEventListener('click', () => fontFileInput.click());
+    fontFileInput.addEventListener('change', () => handleFiles(fontFileInput.files));
     
     function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
+        const files = e.dataTransfer.files;
         handleFiles(files);
     }
-    
-    fontFileInput.addEventListener('change', function() {
-        handleFiles(this.files);
-    });
-    
-    uploadBtn.addEventListener('click', () => {
-        fontFileInput.click();
-    });
     
     function handleFiles(files) {
         if (files.length === 0) return;
@@ -74,15 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
         
         if (!validExtensions.includes(fileExtension)) {
-            alert('Per favore, carica un file di font valido (.ttf, .otf, .woff, .woff2)');
+            alert('Please upload a valid font file (.ttf, .otf, .woff, .woff2)');
             return;
         }
         
-        // Crea un URL per il file caricato
+        // Create URL for the uploaded file
         const fontUrl = URL.createObjectURL(file);
         const fontName = 'CustomFont_' + Date.now();
         
-        // Crea e carica il nuovo font
+        // Create and load the new font
         const newStyle = document.createElement('style');
         newStyle.appendChild(document.createTextNode(`
             @font-face {
@@ -93,118 +81,147 @@ document.addEventListener('DOMContentLoaded', () => {
         `));
         document.head.appendChild(newStyle);
         
-        // Aggiorna le variabili
+        // Update variables
         currentFontName = fontName;
         currentFontPath = file.name;
         
-        // Aggiorna il display
-        currentFontDisplay.textContent = `Font attuale: ${file.name}`;
-        textDisplay.style.fontFamily = `'${fontName}', sans-serif`;
+        // Update display
+        currentFontDisplay.textContent = file.name;
+        editableText.style.fontFamily = `'${fontName}', sans-serif`;
         
-        // Aggiorna il display del testo
-        updateTextDisplay();
+        // Prepare the text again with the new font
+        prepareText();
     }
     
-    // Gestione dell'input di testo
-    textInput.addEventListener('input', updateTextDisplay);
-    fontSizeInput.addEventListener('input', () => {
-        const size = fontSizeInput.value;
-        fontSizeValue.textContent = `${size}px`;
-        textDisplay.style.fontSize = `${size}px`;
-    });
+    // Monitor text changes and prepare letter spans
+    editableText.addEventListener('input', prepareText);
     
-    function updateTextDisplay() {
-        const text = textInput.value || 'Kairos';
-        textDisplay.innerHTML = '';
+    function prepareText() {
+        // Store the current text
+        const text = editableText.textContent;
+        if (!text) return;
         
-        // Crea un elemento span per ogni lettera
+        // Save selection position if any
+        const selection = window.getSelection();
+        const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+        const startOffset = range ? range.startOffset : 0;
+        
+        // Replace the content with spans for each letter
+        editableText.innerHTML = '';
         [...text].forEach(char => {
             const letterSpan = document.createElement('span');
             letterSpan.className = 'letter';
-            letterSpan.textContent = char === ' ' ? '\u00A0' : char; // Preserva gli spazi
-            letterSpan.style.fontWeight = 400; // Valore predefinito
-            textDisplay.appendChild(letterSpan);
+            letterSpan.textContent = char;
+            letterSpan.style.fontWeight = 400; // Default value
+            editableText.appendChild(letterSpan);
         });
+        
+        // Restore selection if needed
+        if (range && editableText.childNodes.length > 0) {
+            try {
+                // Attempt to restore cursor position
+                const newRange = document.createRange();
+                let nodeCounter = 0;
+                let offsetCounter = 0;
+                
+                // Find the node and offset to place the cursor
+                for (let i = 0; i < editableText.childNodes.length; i++) {
+                    const node = editableText.childNodes[i];
+                    const nodeLength = node.textContent.length;
+                    
+                    if (offsetCounter + nodeLength >= startOffset) {
+                        newRange.setStart(node, startOffset - offsetCounter);
+                        break;
+                    }
+                    
+                    offsetCounter += nodeLength;
+                }
+                
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } catch (e) {
+                console.log("Error restoring selection:", e);
+            }
+        }
     }
     
-    // Inizializza il display del testo
-    updateTextDisplay();
-    
-    // Gestione dell'audio
+    // Audio handling
     startAudioBtn.addEventListener('click', startAudio);
     stopAudioBtn.addEventListener('click', stopAudio);
     
-    async function startAudio() {
+    async function startAudio(e) {
+        e.preventDefault();
+        
+        if (isAudioRunning) return;
+        
         try {
-            // Richiedi l'accesso al microfono
+            // Request microphone access
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // Configura l'audio context
+            // Set up audio context
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             microphone = audioContext.createMediaStreamSource(stream);
             
-            // Configura l'analizzatore
+            // Configure analyzer
             microphone.connect(analyser);
-            analyser.fftSize = 1024;
+            analyser.fftSize = 2048; // Higher resolution for better frequency analysis
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
             
-            // Inizia l'analisi audio
+            // Start audio analysis
             isAudioRunning = true;
-            startAudioBtn.disabled = true;
-            stopAudioBtn.disabled = false;
+            startAudioBtn.classList.add('disabled');
+            stopAudioBtn.classList.remove('disabled');
             
-            // Configura il canvas del visualizzatore
+            // Set up canvas
             const canvasCtx = audioVisualizer.getContext('2d');
             audioVisualizer.width = audioVisualizer.clientWidth;
             audioVisualizer.height = audioVisualizer.clientHeight;
             
-            // Funzione di analisi e visualizzazione
+            // Analysis and visualization function
             function analyzeAudio() {
                 if (!isAudioRunning) return;
                 
                 animationId = requestAnimationFrame(analyzeAudio);
                 
-                // Ottieni i dati delle frequenze
+                // Get frequency data
                 analyser.getByteFrequencyData(dataArray);
                 
-                // Dividi l'array delle frequenze in tre bande (bassi, medi, alti)
-                const bassEnd = Math.floor(bufferLength * 0.1); // Primi 10% per i bassi
-                const midEnd = Math.floor(bufferLength * 0.5);  // Successivi 40% per i medi
-                                                                // Restanti 50% per gli alti
+                // Divide frequency bands more effectively
+                // Bass: 20Hz-250Hz, Mids: 250Hz-2kHz, Treble: 2kHz-20kHz
+                const nyquist = audioContext.sampleRate / 2;
+                const bassEnd = Math.floor(bufferLength * (250 / nyquist));
+                const midEnd = Math.floor(bufferLength * (2000 / nyquist));
                 
-                const bassSum = sumArray(dataArray, 0, bassEnd);
-                const midSum = sumArray(dataArray, bassEnd, midEnd);
-                const trebleSum = sumArray(dataArray, midEnd, bufferLength);
+                // Calculate average levels for each band
+                const bassAvg = calculateAverage(dataArray, 0, bassEnd);
+                const midAvg = calculateAverage(dataArray, bassEnd, midEnd);
+                const trebleAvg = calculateAverage(dataArray, midEnd, bufferLength);
                 
-                const bassAvg = bassSum / bassEnd;
-                const midAvg = midSum / (midEnd - bassEnd);
-                const trebleAvg = trebleSum / (bufferLength - midEnd);
+                // Apply audio effects to text
+                applyAudioEffects(bassAvg, midAvg, trebleAvg);
                 
-                // Normalizza i valori (0-255 -> 0-1)
-                const bassNorm = bassAvg / 255;
-                const midNorm = midAvg / 255;
-                const trebleNorm = trebleAvg / 255;
-                
-                // Applica gli effetti al testo
-                applyAudioEffectsToText(bassNorm, midNorm, trebleNorm);
-                
-                // Disegna il visualizzatore audio
+                // Draw visualizer
                 drawVisualizer(canvasCtx, dataArray, bufferLength, bassEnd, midEnd);
             }
             
-            // Avvia l'analisi
+            // Start analysis
             analyzeAudio();
             
         } catch (err) {
-            console.error('Errore nell\'accesso al microfono:', err);
-            alert('Impossibile accedere al microfono. Verifica le autorizzazioni.');
+            console.error('Error accessing microphone:', err);
+            alert('Could not access microphone. Please check your permissions.');
         }
     }
     
-    function stopAudio() {
+    function stopAudio(e) {
+        if (e) e.preventDefault();
+        
+        if (!isAudioRunning) return;
+        
         isAudioRunning = false;
+        
         if (animationId) {
             cancelAnimationFrame(animationId);
         }
@@ -217,90 +234,99 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContext.close();
         }
         
-        startAudioBtn.disabled = false;
-        stopAudioBtn.disabled = true;
+        startAudioBtn.classList.remove('disabled');
+        stopAudioBtn.classList.add('disabled');
         
-        // Resetta il testo
+        // Reset font weights
         const letters = document.querySelectorAll('.letter');
         letters.forEach(letter => {
             letter.style.fontWeight = 400;
         });
     }
     
-    function sumArray(array, start, end) {
+    function calculateAverage(array, start, end) {
         let sum = 0;
         for (let i = start; i < end; i++) {
             sum += array[i];
         }
-        return sum;
+        return sum / (end - start);
     }
     
-    function applyAudioEffectsToText(bassNorm, midNorm, trebleNorm) {
+    function applyAudioEffects(bassAvg, midAvg, trebleAvg) {
         const letters = document.querySelectorAll('.letter');
         if (letters.length === 0) return;
         
-        // Calcola il peso del font per ogni lettera
+        // Apply weighted frequency distribution to each letter
         letters.forEach((letter, index) => {
-            // Calcola la posizione relativa della lettera nel testo (0-1)
+            // Calculate the relative position (0-1) of the letter
             const position = index / (letters.length - 1);
             
-            // Influenza delle bande di frequenza in base alla posizione
-            // Le lettere a sinistra sono più influenzate dai bassi
-            // Le lettere centrali sono più influenzate dai medi
-            // Le lettere a destra sono più influenzate dagli alti
-            let bassInfluence, midInfluence, trebleInfluence;
+            // Create a more distributed influence pattern
+            // Each frequency affects multiple letters with varying intensity
             
-            if (letters.length === 1) {
-                // Se c'è una sola lettera, tutte le frequenze hanno un impatto uguale
-                bassInfluence = midInfluence = trebleInfluence = 1/3;
-            } else {
-                // Calcola l'influenza basata sulla posizione
-                bassInfluence = Math.max(0, 1 - position * 2.5);
-                midInfluence = 1 - Math.abs(position - 0.5) * 2;
-                trebleInfluence = Math.max(0, position * 2.5 - 0.5);
-                
-                // Normalizza per assicurare che la somma non superi 1
-                const totalInfluence = bassInfluence + midInfluence + trebleInfluence;
-                if (totalInfluence > 0) {
-                    bassInfluence /= totalInfluence;
-                    midInfluence /= totalInfluence;
-                    trebleInfluence /= totalInfluence;
-                }
-            }
+            // Bass influences mostly left side but extends to middle
+            const bassInfluence = Math.max(0, 1 - (position * 1.5));
             
-            // Calcola il peso combinato (tra 100 e 900)
-            const weightChange = (
-                bassNorm * bassInfluence +
-                midNorm * midInfluence +
-                trebleNorm * trebleInfluence
-            ) * 800; // Scala da 0-1 a 0-800
+            // Mids have bell curve influence centered in the middle
+            const midPosition = 0.5;
+            const midSpread = 0.6; // Wider spread to affect more letters
+            const midDist = Math.abs(position - midPosition);
+            const midInfluence = Math.exp(-(midDist * midDist) / (2 * midSpread * midSpread));
             
-            const fontWeight = Math.floor(100 + weightChange);
+            // Treble influences mostly right side but extends to middle
+            const trebleInfluence = Math.max(0, position * 1.5 - 0.5);
+            
+            // Normalize the influences
+            const total = bassInfluence + midInfluence + trebleInfluence;
+            const normBass = bassInfluence / total;
+            const normMid = midInfluence / total;
+            const normTreble = trebleInfluence / total;
+            
+            // Calculate the combined weight change (100-900 range for font-weight)
+            const bassEffect = (bassAvg / 255) * normBass;
+            const midEffect = (midAvg / 255) * normMid;
+            const trebleEffect = (trebleAvg / 255) * normTreble;
+            
+            const combinedEffect = bassEffect + midEffect + trebleEffect;
+            
+            // Apply font weight with a more dramatic range (100-900)
+            const fontWeight = Math.floor(100 + (combinedEffect * 800));
             letter.style.fontWeight = fontWeight;
         });
     }
     
     function drawVisualizer(canvasCtx, dataArray, bufferLength, bassEnd, midEnd) {
-        // Cancella il canvas
-        canvasCtx.clearRect(0, 0, audioVisualizer.width, audioVisualizer.height);
+        const width = audioVisualizer.width;
+        const height = audioVisualizer.height;
         
-        const barWidth = audioVisualizer.width / bufferLength;
-        const barMaxHeight = audioVisualizer.height;
+        // Clear canvas
+        canvasCtx.clearRect(0, 0, width, height);
         
-        // Disegna ogni barra
+        // Draw frequency bands
+        const barWidth = width / bufferLength;
+        
         for (let i = 0; i < bufferLength; i++) {
-            const barHeight = (dataArray[i] / 255) * barMaxHeight;
+            const barHeight = (dataArray[i] / 255) * height;
             
-            // Colore basato sulla banda di frequenza
+            // Set color based on frequency band
             if (i < bassEnd) {
-                canvasCtx.fillStyle = 'rgba(231, 76, 60, 0.8)'; // Rosso per i bassi
+                canvasCtx.fillStyle = 'rgba(50, 50, 50, 0.5)'; // Bass (low frequencies)
             } else if (i < midEnd) {
-                canvasCtx.fillStyle = 'rgba(46, 204, 113, 0.8)'; // Verde per i medi
+                canvasCtx.fillStyle = 'rgba(100, 100, 100, 0.5)'; // Mids
             } else {
-                canvasCtx.fillStyle = 'rgba(52, 152, 219, 0.8)'; // Blu per gli alti
+                canvasCtx.fillStyle = 'rgba(150, 150, 150, 0.5)'; // Treble (high frequencies)
             }
             
-            canvasCtx.fillRect(i * barWidth, audioVisualizer.height - barHeight, barWidth, barHeight);
+            // Draw the bar
+            canvasCtx.fillRect(i * barWidth, height - barHeight, barWidth, barHeight);
         }
     }
+    
+    // Handle window resize for canvas
+    window.addEventListener('resize', () => {
+        if (audioVisualizer) {
+            audioVisualizer.width = audioVisualizer.clientWidth;
+            audioVisualizer.height = audioVisualizer.clientHeight;
+        }
+    });
 });
