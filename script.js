@@ -4,8 +4,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const fontSizeSlider = document.getElementById("fontSize");
     const startButton = document.getElementById("startButton");
 
-    let audioContext, analyser, dataArray, variableFont = "Arial"; // Default font
+    let audioContext, analyser, dataArray, variableFont = "ABCMaristVariable"; // Font di default
     let smoothedData;
+
+    // Caricamento del font di default
+    const defaultFontPath = "./ABCMaristVariable-Trial.ttf"; // Percorso del font nella stessa cartella
+    const defaultFont = new FontFace("ABCMaristVariable", `url(${defaultFontPath})`);
+    defaultFont.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        centeredText.style.fontFamily = "ABCMaristVariable"; // Applica il font di default
+        console.log("Font di default caricato: ABCMaristVariable");
+    }).catch((err) => {
+        console.error("Errore nel caricamento del font di default:", err);
+    });
 
     // Drag-and-Drop Font Upload
     dropArea.addEventListener("dragover", (e) => {
@@ -75,16 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.02; // Rilascio molto lento quando il volume diminuisce
+        const attackSpeed = 0.04;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.008; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < dataArray.length; i++) {
             // Easing differenziato con rilascio extra-lento
             if (dataArray[i] > smoothedData[i]) {
-                // Attacco - quando il volume aumenta (moderatamente lento)
                 smoothedData[i] += (dataArray[i] - smoothedData[i]) * attackSpeed;
             } else {
-                // Rilascio - quando il volume diminuisce (estremamente lento)
                 smoothedData[i] += (dataArray[i] - smoothedData[i]) * releaseSpeed;
             }
         }
@@ -97,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75)); // Ignora le frequenze troppo alte
         const midPoint = Math.floor(usableFrequencies.length / 2); // Punto centrale dello spettro
 
-        // Array per memorizzare i pesi precedenti (per transizioni più fluide)
         if (!window.previousWeights) {
             window.previousWeights = new Array(text.length).fill(400); // Inizializza con peso medio
         }
@@ -106,25 +114,22 @@ document.addEventListener("DOMContentLoaded", () => {
             let targetWeight;
             
             if (index < text.length / 2) {
-                // Frequenze basse influenzano le lettere a sinistra
                 const freqIndex = Math.floor(index / text.length * midPoint);
                 targetWeight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             } else {
-                // Frequenze medie-alte influenzano le lettere a destra
-                const freqIndex = Math.floor((index - text.length / 2) / text.length * midPoint + midPoint);
-                targetWeight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
+                const freqIndex =
+                    Math.floor((index - text.length / 2) / text.length * midPoint + midPoint);
+                targetWeight =
+                    Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
             
-            // Transizione molto lenta tra i valori
-            const transitionSpeed = 0.12; // Velocità di transizione estremamente bassa
+            const transitionSpeed = 0.05;
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
             
-            // Arrotonda per evitare valori con troppe cifre decimali
             const weight = Math.round(window.previousWeights[index]);
             
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
-                transition: font-variation-settings 75ms linear;
                 display: inline-block;">${char}</span>`;
         }).join("");
     }
