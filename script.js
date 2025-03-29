@@ -74,9 +74,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         analyser.getByteFrequencyData(dataArray);
 
-        // Smoothing avanzato con release lenta
+        // Smoothing migliorato con sistema di easing più sofisticato
+        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.03; // Velocità di rilascio quando il volume diminuisce (più basso = più lento)
+        
         for (let i = 0; i < dataArray.length; i++) {
-            smoothedData[i] += (dataArray[i] - smoothedData[i]) * 0.1; // Interpolazione lenta
+            // Easing differenziato per attacco e rilascio
+            if (dataArray[i] > smoothedData[i]) {
+                // Attacco - quando il volume aumenta
+                smoothedData[i] += (dataArray[i] - smoothedData[i]) * attackSpeed;
+            } else {
+                // Rilascio - quando il volume diminuisce
+                smoothedData[i] += (dataArray[i] - smoothedData[i]) * releaseSpeed;
+            }
         }
 
         updateFontWeights(smoothedData);
@@ -87,24 +97,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75)); // Ignora le frequenze troppo alte
         const midPoint = Math.floor(usableFrequencies.length / 2); // Punto centrale dello spettro
 
+        // Array per memorizzare i pesi precedenti (per transizioni più fluide)
+        if (!window.previousWeights) {
+            window.previousWeights = new Array(text.length).fill(400); // Inizializza con peso medio
+        }
+        
         centeredText.innerHTML = text.map((char, index) => {
-            let weight;
-
+            let targetWeight;
+            
             if (index < text.length / 2) {
                 // Frequenze basse influenzano le lettere a sinistra
                 const freqIndex = Math.floor(index / text.length * midPoint);
-                weight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
+                targetWeight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             } else {
                 // Frequenze medie-alte influenzano le lettere a destra
-                const freqIndex =
-                    Math.floor((index - text.length / 2) / text.length * midPoint + midPoint);
-                weight =
-                    Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
+                const freqIndex = Math.floor((index - text.length / 2) / text.length * midPoint + midPoint);
+                targetWeight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
-
+            
+            // Applica un smooth tra il peso precedente e quello nuovo
+            const transitionSpeed = 0.15; // Velocità di transizione (più basso = più fluido)
+            window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
+            
+            // Arrotonda per evitare valori con troppe cifre decimali
+            const weight = Math.round(window.previousWeights[index]);
+            
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
-                display:inline-block;">${char}</span>`;
+                transition: font-variation-settings 50ms linear;
+                display: inline-block;">${char}</span>`;
         }).join("");
     }
 });
