@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let audioContext, analyser, dataArray, variableFont = "ABCMaristVariable"; // Font di default
     let smoothedData;
+    let fontLoaded = false; // Flag per verificare se il font è stato caricato
 
     // Caricamento del font di default
     const defaultFontPath = "./ABCMaristVariable-Trial.ttf"; // Percorso del font nella stessa cartella
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.fonts.add(loadedFont);
         centeredText.style.fontFamily = "ABCMaristVariable"; // Applica il font di default
         console.log("Font di default caricato: ABCMaristVariable");
+        fontLoaded = true; // Imposta il flag su true quando il font è caricato
     }).catch((err) => {
         console.error("Errore nel caricamento del font di default:", err);
     });
@@ -33,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dropArea.addEventListener("drop", (e) => {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
-        if (file && (file.type === "font/woff2" || file.type === "font/ttf")) {
+        if (file && (file.type === "font/woff2" || file.type === "font/ttf" || file.name.endsWith('.ttf') || file.name.endsWith('.woff2'))) {
             const reader = new FileReader();
             reader.onload = () => {
                 const fontFace = new FontFace("CustomFont", reader.result);
@@ -42,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     variableFont = loadedFont.family; // Aggiorna il font variabile
                     centeredText.style.fontFamily = variableFont; // Applica al testo
                     dropArea.textContent = "Font caricato con successo!";
+                    fontLoaded = true; // Imposta il flag su true quando un nuovo font è caricato
                 });
             };
             reader.readAsArrayBuffer(file);
@@ -61,6 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Avvio del microfono
     startButton.addEventListener("click", async () => {
+        // Verifica che un font sia stato caricato prima di avviare il microfono
+        if (!fontLoaded) {
+            alert("Attendi il caricamento del font predefinito o carica un font personalizzato.");
+            return;
+        }
+        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -74,6 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             source.connect(analyser);
             animateText();
+            
+            // Cambia il testo del pulsante per indicare che il microfono è attivo
+            startButton.textContent = "Microfono Attivo";
+            startButton.disabled = true;
         } catch (err) {
             console.error("Errore nell'accesso al microfono:", err);
             alert("Impossibile accedere al microfono. Controlla le impostazioni del browser.");
@@ -87,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Smoothing estremamente lento con rilascio molto lungo
         const attackSpeed = 0.04;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.008; // Rilascio molto lento quando il volume diminuisce
+        const releaseSpeed = 0.01; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < dataArray.length; i++) {
             // Easing differenziato con rilascio extra-lento
@@ -106,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75)); // Ignora le frequenze troppo alte
         const midPoint = Math.floor(usableFrequencies.length / 2); // Punto centrale dello spettro
 
-        if (!window.previousWeights) {
+        if (!window.previousWeights || window.previousWeights.length !== text.length) {
             window.previousWeights = new Array(text.length).fill(400); // Inizializza con peso medio
         }
         
@@ -130,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
+                transition: font-variation-settings 150ms linear;
                 display: inline-block;">${char}</span>`;
         }).join("");
     }
