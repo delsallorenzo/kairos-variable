@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const source = audioContext.createMediaStreamSource(stream);
 
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 4096; // Maggiore risoluzione delle frequenze
+            analyser.fftSize = 2048; // Maggiore risoluzione delle frequenze
             const bufferLength = analyser.frequencyBinCount; // Numero di "bin" delle frequenze
             dataArray = new Uint8Array(bufferLength);
             smoothedData = new Float32Array(bufferLength).fill(100); // Inizializza i dati smooth
@@ -87,14 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Amplificazione e normalizzazione dei dati audio
-        const amplifiedData = dataArray.map(value => Math.max(value * 3, 20)); // Amplifica e ignora valori bassi
+        const amplifiedData = dataArray.map(value => Math.max(value * 2.5, 20)); // Amplifica e ignora valori bassi
         
         const maxAmplitude = Math.max(...amplifiedData); // Trova il valore massimo per normalizzare
         const normalizedData = amplifiedData.map(value => value / maxAmplitude * 512); // Normalizza tra 0 e 255
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.1;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.03; // Rilascio molto lento quando il volume diminuisce
+        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.008; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < normalizedData.length; i++) {
             if (normalizedData[i] > smoothedData[i]) {
@@ -109,11 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateFontWeights(frequencies) {
         const text = centeredText.textContent.split(""); // Solo testo centrale
-        const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75)); // Ignora frequenze alte
+        const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.85)); // Ignora frequenze alte
         const midPoint = Math.floor(usableFrequencies.length / 2);
 
         if (!window.previousWeights) {
-            window.previousWeights = new Array(text.length).fill(400); // Inizializza con peso medio
+            window.previousWeights = new Array(text.length).fill(255); // Inizializza con peso medio
         }
 
         centeredText.innerHTML = text.map((char, index) => {
