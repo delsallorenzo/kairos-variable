@@ -74,17 +74,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         analyser.getByteFrequencyData(dataArray);
 
-        // Smoothing migliorato con sistema di easing più sofisticato
-        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
-        const releaseSpeed = 0.03; // Velocità di rilascio quando il volume diminuisce (più basso = più lento)
+        // Smoothing estremamente lento con rilascio molto lungo
+        const attackSpeed = 0.04;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const releaseSpeed = 0.008; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < dataArray.length; i++) {
-            // Easing differenziato per attacco e rilascio
+            // Easing differenziato con rilascio extra-lento
             if (dataArray[i] > smoothedData[i]) {
-                // Attacco - quando il volume aumenta
+                // Attacco - quando il volume aumenta (moderatamente lento)
                 smoothedData[i] += (dataArray[i] - smoothedData[i]) * attackSpeed;
             } else {
-                // Rilascio - quando il volume diminuisce
+                // Rilascio - quando il volume diminuisce (estremamente lento)
                 smoothedData[i] += (dataArray[i] - smoothedData[i]) * releaseSpeed;
             }
         }
@@ -115,8 +115,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 targetWeight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
             
-            // Applica un smooth tra il peso precedente e quello nuovo
-            const transitionSpeed = 0.15; // Velocità di transizione (più basso = più fluido)
+            // Transizione molto lenta tra i valori
+            const transitionSpeed = 0.05; // Velocità di transizione estremamente bassa
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
             
             // Arrotonda per evitare valori con troppe cifre decimali
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
-                transition: font-variation-settings 50ms linear;
+                transition: font-variation-settings 150ms linear;
                 display: inline-block;">${char}</span>`;
         }).join("");
     }
