@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             // Transizione molto lenta tra i valori
-            const transitionSpeed = 0.05; // Velocità di transizione estremamente bassa
+            const transitionSpeed = 0.10; // Velocità di transizione estremamente bassa
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
             
             // Arrotonda per evitare valori con troppe cifre decimali
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             return `<span style="
                 font-variation-settings: 'wght' ${weight};
-                transition: font-variation-settings 150ms linear;
+                transition: font-variation-settings 100ms linear;
                 display: inline-block;">${char}</span>`;
         }).join("");
     }
