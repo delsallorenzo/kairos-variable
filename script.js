@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const dropArea = document.getElementById("drop-area");
     const centeredText = document.getElementById("centeredText");
-    const fontSizeSlider = document.getElementById("fontSize");
     const startButton = document.getElementById("startButton");
 
     let audioContext, analyser, dataArray, variableFont = "ABCMaristVariable"; // Font di default
@@ -53,13 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
         dropArea.textContent = "Trascina qui il tuo font variabile (WOFF2 o TTF)";
     });
 
-    // Slider per la dimensione del testo
-    fontSizeSlider.addEventListener("input", () => {
-        const size = `${fontSizeSlider.value}px`;
-        centeredText.style.fontSize = size; // Aggiorna la dimensione del testo
-        document.getElementById("fontSizeValue").textContent = size; // Mostra il valore corrente
-    });
-
     // Avvio del microfono
     startButton.addEventListener("click", async () => {
         try {
@@ -87,13 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Amplificazione e normalizzazione dei dati audio
-        const amplifiedData = dataArray.map(value => Math.max(value * 2.5, 20)); // Amplifica e ignora valori bassi
+        const amplifiedData = dataArray.map(value => Math.max(value * 1.5, 20)); // Amplifica e ignora valori bassi
         
         const maxAmplitude = Math.max(...amplifiedData); // Trova il valore massimo per normalizzare
-        const normalizedData = amplifiedData.map(value => value / maxAmplitude * 512); // Normalizza tra 0 e 255
+        const normalizedData = amplifiedData.map(value => value / maxAmplitude * 255); // Normalizza tra 0 e 255
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.08;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const attackSpeed = 0.04;  // Velocità di risposta all'aumento del volume (più basso = più lento)
         const releaseSpeed = 0.008; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < normalizedData.length; i++) {
@@ -109,11 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateFontWeights(frequencies) {
         const text = centeredText.textContent.split(""); // Solo testo centrale
-        const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.85)); // Ignora frequenze alte
+        const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75)); // Ignora frequenze alte
         const midPoint = Math.floor(usableFrequencies.length / 2);
 
         if (!window.previousWeights) {
-            window.previousWeights = new Array(text.length).fill(255); // Inizializza con peso medio
+            window.previousWeights = new Array(text.length).fill(400); // Inizializza con peso medio
         }
 
         centeredText.innerHTML = text.map((char, index) => {
@@ -129,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
 
-            const transitionSpeed = 0.2; // Velocità della transizione tra pesi
+            const transitionSpeed = 0.05; // Velocità della transizione tra pesi
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
 
             return `<span style="

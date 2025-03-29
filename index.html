@@ -7,18 +7,19 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Area di drag-and-drop per caricare nuovi font -->
     <div id="drop-area">
-        Trascina qui il tuo font variabile (WOFF2 o TTF)
+        Drag and drop your variable font file here
     </div>
+
+    <!-- Contenitore per il testo centrale -->
     <div id="container">
-        <div id="centeredText" contenteditable="true">Ciao</div>
+        <div id="centeredText">Kairos</div>
     </div>
-    <div id="controls">
-        <label for="fontSize">Dimensione testo:</label>
-        <input type="range" id="fontSize" min="10" max="100" value="48">
-        <span id="fontSizeValue">48px</span>
-    </div>
-    <button id="startButton">Avvia Microfono</button>
+
+    <!-- Pulsante per avviare il microfono -->
+    <button id="startButton">START MIC</button>
+
     <script src="script.js"></script>
 </body>
 </html>
