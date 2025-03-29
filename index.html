@@ -3,23 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio-Reactive Font</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Font Audioreattivo</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Area di drag-and-drop per caricare nuovi font -->
-    <div id="drop-area">
-        Drag and drop your variable font file here
+    <div class="container">
+        <header>
+            <h1>Font Audioreattivo</h1>
+        </header>
+        
+        <section class="font-loader">
+            <div id="drop-zone">
+                <p>Trascina qui il tuo variable font (.ttf, .otf, .woff, .woff2)<br>o</p>
+                <input type="file" id="font-file" accept=".ttf,.otf,.woff,.woff2">
+                <button id="upload-btn">Seleziona un file</button>
+                <p id="current-font">Font attuale: ABCMaristVariable-Trial.ttf</p>
+            </div>
+        </section>
+        
+        <section class="text-controls">
+            <div class="input-group">
+                <label for="text-input">Scrivi il testo:</label>
+                <input type="text" id="text-input" value="Kairos" placeholder="Scrivi qui...">
+            </div>
+            <div class="input-group">
+                <label for="font-size">Dimensione font:</label>
+                <input type="range" id="font-size" min="20" max="200" value="100">
+                <span id="font-size-value">100px</span>
+            </div>
+            <button id="start-audio">Inizia Audio</button>
+            <button id="stop-audio" disabled>Ferma Audio</button>
+        </section>
+        
+        <section class="visualization">
+            <div id="text-display"></div>
+            <canvas id="audio-visualizer"></canvas>
+        </section>
+        
+        <section class="audio-legend">
+            <div class="legend-item">
+                <div class="color-box bass"></div>
+                <span>Bassi (Sinistra)</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box mid"></div>
+                <span>Medi (Centro)</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box treble"></div>
+                <span>Alti (Destra)</span>
+            </div>
+        </section>
     </div>
-
-    <!-- Contenitore per il testo centrale -->
-    <div id="container">
-        <div id="centeredText">Kairos</div>
-    </div>
-
-    <!-- Pulsante per avviare il microfono -->
-    <button id="startButton">START MIC</button>
-
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,43 +1,182 @@
-/* Caricamento del font di default tramite @font-face */
 @font-face {
     font-family: 'ABCMaristVariable';
-    src: url('./ABCMaristVariable-Trial.ttf') format('truetype');
-    font-weight: 100 900; /* Supporta tutte le variazioni di peso */
-    font-style: normal;
+    src: url('ABCMaristVariable-Trial.ttf') format('truetype-variations');
+    font-weight: 100 900;
 }
 
-/* Stile generale della pagina */
-body, html {
+* {
     margin: 0;
     padding: 0;
-    height: 100%;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: #2c3e50;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+/* Font Loader */
+#drop-zone {
+    border: 3px dashed #ccc;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    background-color: #f9f9f9;
+    transition: all 0.3s;
+}
+
+#drop-zone.highlight {
+    border-color: #3498db;
+    background-color: #ebf5fb;
+}
+
+#font-file {
+    display: none;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 10px 0;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}
+
+#current-font {
+    margin-top: 15px;
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+/* Text Controls */
+.text-controls {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
     align-items: center;
-    font-family: Arial, sans-serif; /* Font di fallback */
+    gap: 10px;
 }
 
-/* Area di drag-and-drop */
-#drop-area {
-    border: 2px dashed #ccc;
-    padding: 20px;
+label {
+    min-width: 120px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+input[type="range"] {
+    flex: 1;
+}
+
+/* Visualization */
+.visualization {
+    position: relative;
+    min-height: 200px;
+}
+
+#text-display {
+    font-family: 'ABCMaristVariable', sans-serif;
+    font-size: 100px;
+    line-height: 1.2;
     text-align: center;
-    margin-bottom: 20px;
-    width: 80%;
-}
-
-/* Contenitore del testo centrale */
-#container {
+    padding: 20px;
+    color: #2c3e50;
+    min-height: 200px;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 60vh; /* Altezza statica */
 }
 
-/* Testo centrale */
-#centeredText {
-    font-family: 'ABCMaristVariable', Arial, sans-serif; /* Usa il font di default */
-    font-size: 250px; /* Dimensione iniziale */
-    text-align: center;
+.letter {
+    display: inline-block;
+    position: relative;
+    transition: font-weight 0.05s ease;
+}
+
+#audio-visualizer {
+    width: 100%;
+    height: 100px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+/* Audio Legend */
+.audio-legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+}
+
+.bass {
+    background-color: #e74c3c;
+}
+
+.mid {
+    background-color: #2ecc71;
+}
+
+.treble {
+    background-color: #3498db;
 }
