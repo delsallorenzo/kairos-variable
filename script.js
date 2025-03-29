@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const startButton = document.getElementById("startButton");
 
     let audioContext, analyser, dataArray, variableFont;
+    let previousData;
 
     // Drag-and-Drop Font Upload
     dropArea.addEventListener("dragover", (e) => {
@@ -58,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
             analyser.fftSize = 2048;
             const bufferLength = analyser.frequencyBinCount;
             dataArray = new Uint8Array(bufferLength);
+            previousData = new Uint8Array(bufferLength);
 
             source.connect(analyser);
             animateText();
@@ -67,17 +69,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Funzione per rendere il testo reattivo all'audio
     function animateText() {
         requestAnimationFrame(animateText);
 
         analyser.getByteFrequencyData(dataArray);
 
-        if (!dataArray.some((value) => value > 0)) return; // Salta se non ci sono dati validi
+        // Amplificazione del volume e applicazione di una soglia minima
+        const amplifiedData = dataArray.map(value => Math.max(value * 1.5, 20));
 
-        updateFontWeights(dataArray);
+        // Smoothing: media mobile tra il valore attuale e quello precedente
+        const smoothedData = amplifiedData.map((value, index) => {
+            const smoothedValue = (value + previousData[index]) / 2;
+            previousData[index] = smoothedValue; // Aggiorna il valore precedente
+            return smoothedValue;
+        });
+
+        updateFontWeights(smoothedData);
     }
 
-    // Aggiorna i pesi delle lettere in base alle frequenze
     function updateFontWeights(frequencies) {
         const text = centeredText.textContent.split("");
+        const usableFrequencies = frequencies.slice(0, Math.floor(frequencies.length * 0.75));
+        const midPoint = Math.floor(usableFrequencies.length / 2);
+
+        centeredText.innerHTML = text.map((char, index) => {
+            let weight;
+
+            if (index < text.length / 2) {
+                const freqIndex = Math.floor(index / text.length * midPoint);
+                weight = Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
+            } else {
+                const freqIndex =
+                    Math.floor((index - text.length / 2) / text.length * midPoint + midPoint);
+                weight =
+                    Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
+            }
+
+            return `<span style="
+                font-variation-settings: 'wght' ${weight};
+                display:inline-block;">${char}</span>`;
+        }).join("");
+    }
+});
