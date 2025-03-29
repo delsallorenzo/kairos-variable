@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let audioContext, analyser, dataArray, variableFont = "Arial"; // Default font
     let previousData;
+    let smoothedData;
 
     // Drag-and-Drop Font Upload
     dropArea.addEventListener("dragover", (e) => {
@@ -60,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const bufferLength = analyser.frequencyBinCount; // Numero di "bin" delle frequenze
             dataArray = new Uint8Array(bufferLength);
             previousData = new Uint8Array(bufferLength);
+            smoothedData = new Uint8Array(bufferLength);
 
             source.connect(analyser);
             animateText();
@@ -78,11 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const amplifiedData = dataArray.map(value => Math.max(value * 1.5, 20));
 
         // Smoothing: media mobile tra il valore attuale e quello precedente
-        const smoothedData = amplifiedData.map((value, index) => {
-            const smoothedValue = (value + previousData[index]) / 2;
-            previousData[index] = smoothedValue; // Aggiorna il valore precedente
-            return smoothedValue;
-        });
+        for (let i = 0; i < amplifiedData.length; i++) {
+            smoothedData[i] =
+                smoothedData[i] * 0.9 + amplifiedData[i] * 0.1; // Interpolazione lenta (release)
+        }
 
         updateFontWeights(smoothedData);
     }
