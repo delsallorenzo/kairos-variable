@@ -10,12 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
     dropArea.addEventListener("dragover", (e) => {
         e.preventDefault();
         dropArea.style.borderColor = "black";
-        dropArea.textContent = "Rilascia qui il file!";
+        dropArea.textContent = "Drop here a variable font";
     });
 
     dropArea.addEventListener("dragleave", () => {
         dropArea.style.borderColor = "#ccc";
-        dropArea.textContent = "Trascina qui il tuo font variabile (WOFF2 o TTF)";
+        dropArea.textContent = "Drop here a variable font";
     });
 
     dropArea.addEventListener("drop", (e) => {
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     document.fonts.add(loadedFont);
                     variableFont = loadedFont.family;
                     centeredText.style.fontFamily = variableFont;
-                    dropArea.textContent = "Font caricato con successo!";
+                    dropArea.textContent = "Font uploaded correctly";
                 });
             };
             reader.readAsArrayBuffer(file);
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Carica un file WOFF2 o TTF valido.");
         }
         dropArea.style.borderColor = "#ccc";
-        dropArea.textContent = "Trascina qui il tuo font variabile (WOFF2 o TTF)";
+        dropArea.textContent = "Drop here a variable font";
     });
 
     // Slider per la dimensione del testo
