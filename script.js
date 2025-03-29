@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const source = audioContext.createMediaStreamSource(stream);
 
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 1024; // Maggiore risoluzione delle frequenze
+            analyser.fftSize = 4096; // Maggiore risoluzione delle frequenze
             const bufferLength = analyser.frequencyBinCount; // Numero di "bin" delle frequenze
             dataArray = new Uint8Array(bufferLength);
             smoothedData = new Float32Array(bufferLength).fill(100); // Inizializza i dati smooth
@@ -87,13 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
         analyser.getByteFrequencyData(dataArray);
 
         // Amplificazione e normalizzazione dei dati audio
-        const amplifiedData = dataArray.map(value => Math.max(value * 2, 20)); // Amplifica e ignora valori bassi
+        const amplifiedData = dataArray.map(value => Math.max(value * 3, 20)); // Amplifica e ignora valori bassi
         
         const maxAmplitude = Math.max(...amplifiedData); // Trova il valore massimo per normalizzare
-        const normalizedData = amplifiedData.map(value => value / maxAmplitude * 255); // Normalizza tra 0 e 255
+        const normalizedData = amplifiedData.map(value => value / maxAmplitude * 512); // Normalizza tra 0 e 255
 
         // Smoothing estremamente lento con rilascio molto lungo
-        const attackSpeed = 0.07;  // Velocità di risposta all'aumento del volume (più basso = più lento)
+        const attackSpeed = 0.1;  // Velocità di risposta all'aumento del volume (più basso = più lento)
         const releaseSpeed = 0.03; // Rilascio molto lento quando il volume diminuisce
         
         for (let i = 0; i < normalizedData.length; i++) {
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     Math.min(900, Math.max(100, usableFrequencies[freqIndex] * (900 / 255)));
             }
 
-            const transitionSpeed = 0.08; // Velocità della transizione tra pesi
+            const transitionSpeed = 0.2; // Velocità della transizione tra pesi
             window.previousWeights[index] += (targetWeight - window.previousWeights[index]) * transitionSpeed;
 
             return `<span style="
