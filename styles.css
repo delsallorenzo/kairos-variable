@@ -1,3 +1,12 @@
+/* Caricamento del font di default tramite @font-face */
+@font-face {
+    font-family: 'ABCMaristVariable';
+    src: url('./ABCMaristVariable-Trial.ttf') format('truetype');
+    font-weight: 100 900; /* Supporta tutte le variazioni di peso */
+    font-style: normal;
+}
+
+/* Stile generale della pagina */
 body, html {
     margin: 0;
     padding: 0;
@@ -6,9 +15,10 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: Arial, sans-serif; /* Font di fallback */
 }
 
+/* Area di drag-and-drop */
 #drop-area {
     border: 2px dashed #ccc;
     padding: 20px;
@@ -17,6 +27,7 @@ body, html {
     width: 80%;
 }
 
+/* Contenitore del testo centrale */
 #container {
     display: flex;
     justify-content: center;
@@ -24,12 +35,14 @@ body, html {
     height: 60vh;
 }
 
+/* Testo centrale */
 #centeredText {
-    font-family: Arial, sans-serif; /* Font di fallback */
-    font-size: 48px;
+    font-family: 'ABCMaristVariable', Arial, sans-serif; /* Usa il font di default */
+    font-size: 48px; /* Dimensione iniziale */
     text-align: center;
 }
 
+/* Controlli dello slider */
 #controls {
     margin-top: 20px;
 }
