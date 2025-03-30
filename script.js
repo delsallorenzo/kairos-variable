@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let audioContext, analyser, dataArray, variableFont = "Arial"; // Default font
     let previousData;
 
+    // Imposta il testo iniziale
+    centeredText.textContent = "Kairos Vox";
+
     // Carica il font predefinito dalla cartella del progetto
     const defaultFontPath = "./ABCMaristVariable-Trial.ttf";
     const defaultFontFace = new FontFace("ABCMaristVariable", `url(${defaultFontPath})`);
