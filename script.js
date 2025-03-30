@@ -7,6 +7,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let audioContext, analyser, dataArray, variableFont = "Arial"; // Default font
     let previousData;
 
+    // Carica il font predefinito dalla cartella del progetto
+    const defaultFontPath = "./ABCMaristVariable-Trial.ttf";
+    const defaultFontFace = new FontFace("ABCMaristVariable", `url(${defaultFontPath})`);
+    defaultFontFace.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        variableFont = loadedFont.family; // Imposta il font predefinito
+        centeredText.style.fontFamily = variableFont; // Applica al testo
+    }).catch((err) => {
+        console.error("Errore nel caricamento del font predefinito:", err);
+    });
+
     // Drag-and-Drop Font Upload
     dropArea.addEventListener("dragover", (e) => {
         e.preventDefault();
@@ -77,11 +88,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Amplificazione del volume e applicazione di una soglia minima
         const amplifiedData = dataArray.map(value => Math.max(value * 1.5, 20));
 
-        // Smoothing: media mobile tra il valore attuale e quello precedente
+        // Smoothing: applica un easing per rendere il calo più fluido
+        const releaseFactor = 0.1; // Fattore di rilascio (più basso = rilascio più lento)
         const smoothedData = amplifiedData.map((value, index) => {
-            const smoothedValue = (value + previousData[index]) / 2;
-            previousData[index] = smoothedValue; // Aggiorna il valore precedente
-            return smoothedValue;
+            if (value > previousData[index]) {
+                // Se il valore corrente è maggiore, aggiornalo immediatamente
+                previousData[index] = value;
+            } else {
+                // Altrimenti, applica un rilascio graduale
+                previousData[index] = previousData[index] - (previousData[index] - value) * releaseFactor;
+            }
+            return previousData[index];
         });
 
         updateFontWeights(smoothedData);
